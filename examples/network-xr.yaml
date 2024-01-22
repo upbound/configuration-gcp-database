@@ -1,0 +1,8 @@
+apiVersion: gcp.platform.upbound.io/v1alpha1
+kind: XNetwork
+metadata:
+  name: configuration-gcp-database
+spec:
+  parameters:
+    id: configuration-gcp-database
+    region: us-west2
