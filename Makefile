@@ -66,6 +66,7 @@ uptest: $(UPTEST) $(KUBECTL) $(KUTTL)
 
 # This target requires the following environment variables to be set:
 # - UPTEST_CLOUD_CREDENTIALS, cloud credentials for the provider being tested, e.g. export UPTEST_CLOUD_CREDENTIALS=$(cat gcp.json)
+#   make e2e UPTEST_GCP_PROJECT=crossplane-playground to use a different project
 e2e: build controlplane.up local.xpkg.deploy.configuration.$(PROJECT_NAME) uptest
 
 render:
