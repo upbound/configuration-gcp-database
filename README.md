@@ -1,5 +1,3 @@
-
-
 # GCP database Configuration
 
 
@@ -14,7 +12,7 @@ The core components of a custom API in [Crossplane](https://docs.crossplane.io/v
 
 In this specific configuration, the GCP database API contains:
 
-- **an GCP database (/apis/definition.yaml) custom resource type.**
+- **an [GCP database](/apis/definition.yaml) custom resource type.**
 - **Composition of the GCP database resources:** Configured in [/apis/composition.yaml](/apis/composition.yaml), it provisions an GCP databaseand resources in the `upbound-system` namespace.
 
 This repository contains an Composite Resource (XR) file.
@@ -25,9 +23,9 @@ This repository contains an Composite Resource (XR) file.
 apiVersion: pkg.crossplane.io/v1
 kind: Configuration
 metadata:
-  name: PACKAGE NAME
+  name: configuration-gcp-database
 spec:
-  package: PACKAGE SPEC
+  package: xpkg.upbound.io/upbound/configuration-gcp-database:v0.1.0
 ```
 
 ## Next steps
