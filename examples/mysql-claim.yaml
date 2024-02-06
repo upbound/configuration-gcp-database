@@ -1,28 +1,28 @@
 apiVersion: gcp.platform.upbound.io/v1alpha1
 kind: SQLInstance
 metadata:
-  name: configuration-gcp-database-postgres
+  name: configuration-gcp-database-mysql
   namespace: default
 spec:
   parameters:
-    engine: postgres
-    engineVersion: "13"
+    engine: mysql
+    engineVersion: "8_0"
     region: us-west2
     storageGB: 10
     passwordSecretRef:
       namespace: default
-      name: psqlsecret
+      name: mysqlsecret
       key: password
     networkRef:
       id: configuration-gcp-database
   writeConnectionSecretToRef:
-    name: configuration-gcp-database-postgres-conn
+    name: configuration-gcp-database-mysql-conn
 ---
 apiVersion: v1
 data:
   password: dXBiMHVuZHIwY2s1ITMxMzM3
 kind: Secret
 metadata:
-  name: psqlsecret
+  name: mysqlsecret
   namespace: default
 type: Opaque
