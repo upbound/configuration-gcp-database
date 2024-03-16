@@ -19,10 +19,10 @@ spec:
   dependsOn:
     - provider: xpkg.upbound.io/upbound/provider-gcp-sql
       # renovate: datasource=github-releases depName=upbound/provider-gcp
-      version: "v0.41.1"
+      version: "v0.41.3"
     - provider: xpkg.upbound.io/upbound/provider-gcp-servicenetworking
       # renovate: datasource=github-releases depName=upbound/provider-gcp
-      version: "v0.41.1"
+      version: "v0.41.3"
     - configuration: xpkg.upbound.io/upbound/configuration-gcp-network
       # renovate: datasource=github-releases depName=upbound/configuration-gcp-network
       version: "v0.4.0"
