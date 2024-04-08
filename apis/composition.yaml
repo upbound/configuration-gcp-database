@@ -1,7 +1,7 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: xpostgresqlinstances.gcp.platform.upbound.io
+  name: xsqlinstances.gcp.platform.upbound.io
   labels:
     provider: gcp
 spec:
