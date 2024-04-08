@@ -94,10 +94,24 @@ spec:
                   string:
                     fmt: "%suser-%.8s"  # mysql has a limit of 32 chars for users thus we need to limit the length
                 toFieldPath: metadata.annotations[crossplane.io/external-name]
+              - type: CombineFromComposite
+                combine:
+                  variables:
+                    - fromFieldPath: metadata.uid
+                    - fromFieldPath: spec.parameters.engine
+                  strategy: string
+                  string:
+                    fmt: "%s-gcp-%s-user"
+                toFieldPath: spec.writeConnectionSecretToRef.name
+              - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+                toFieldPath: spec.writeConnectionSecretToRef.namespace
             connectionDetails:
               - name: username
                 type: FromFieldPath
                 fromFieldPath: metadata.annotations[crossplane.io/external-name]
+              - name: password
+                type: FromConnectionSecretKey
+                fromConnectionSecretKey: password
           - name: DBInstance
             base:
               apiVersion: sql.gcp.upbound.io/v1beta1
