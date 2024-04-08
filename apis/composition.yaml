@@ -111,7 +111,7 @@ spec:
                 fromFieldPath: metadata.annotations[crossplane.io/external-name]
               - name: password
                 type: FromConnectionSecretKey
-                fromConnectionSecretKey: password
+                fromConnectionSecretKey: attribute.password
           - name: DBInstance
             base:
               apiVersion: sql.gcp.upbound.io/v1beta1
