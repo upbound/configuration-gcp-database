@@ -146,6 +146,8 @@ spec:
                   settings:
                     - diskSize: 20
                       tier: db-f1-micro
+                      ipConfiguration:
+                        - ipv4Enabled: false
             patches:
               - type: PatchSet
                 patchSetName: providerConfigRef
