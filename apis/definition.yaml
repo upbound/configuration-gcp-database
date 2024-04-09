@@ -11,7 +11,9 @@ spec:
     kind: SQLInstance
     plural: sqlinstances
   connectionSecretKeys:
-    - privateIP
+    - username
+    - password
+    - host
     - serverCACertificateCert
   versions:
     - name: v1alpha1
