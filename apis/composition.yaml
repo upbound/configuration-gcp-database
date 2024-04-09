@@ -127,7 +127,7 @@ spec:
                 patchSetName: deletionPolicy
               - type: FromCompositeFieldPath
                 fromFieldPath: metadata.name
-                toFieldPath: metadata.name
+                toFieldPath: metadata.annotations[crossplane.io/external-name]
                 transforms:
                   - type: match
                     match:
@@ -142,7 +142,6 @@ spec:
               kind: DatabaseInstance
               spec:
                 forProvider:
-                  databaseVersion: POSTGRES_13
                   deletionProtection: false
                   settings:
                     - diskSize: 20
