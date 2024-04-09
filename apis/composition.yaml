@@ -112,6 +112,30 @@ spec:
               - name: password
                 type: FromConnectionSecretKey
                 fromConnectionSecretKey: attribute.password
+          - name: UpboundDatabase
+            base:
+              apiVersion: sql.gcp.upbound.io/v1beta1
+              kind: Database
+              spec:
+                forProvider:
+                  instanceSelector:
+                    matchControllerRef: true
+            patches:
+              - type: PatchSet
+                patchSetName: providerConfigRef
+              - type: PatchSet
+                patchSetName: deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.name
+                toFieldPath: metadata.name
+                transforms:
+                  - type: match
+                    match:
+                      fallbackValue: null
+                      patterns:
+                        - regexp: .*
+                          result: upbound
+                          type: regexp
           - name: DBInstance
             base:
               apiVersion: sql.gcp.upbound.io/v1beta1
