@@ -4,5 +4,5 @@ metadata:
   name: configuration-gcp-database
 spec:
   parameters:
-    id: configuration-gcp-database
-    region: us-west2
+    id: configuration-gcp-database-eu
+    region: europe-central2

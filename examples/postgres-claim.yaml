@@ -10,14 +10,14 @@ spec:
   parameters:
     engine: postgres
     engineVersion: "13"
-    region: us-west2
+    region: europe-central2
     storageGB: 10
     passwordSecretRef:
       namespace: default
       name: psqlsecret
       key: password
     networkRef:
-      id: configuration-gcp-database
+      id: configuration-gcp-database-eu
   writeConnectionSecretToRef:
     name: configuration-gcp-database-postgres-conn
 ---
