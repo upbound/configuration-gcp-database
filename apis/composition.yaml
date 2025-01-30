@@ -59,6 +59,7 @@ spec:
                   reservedPeeringRangesSelector:
                     matchControllerRef: true
                   service: servicenetworking.googleapis.com
+                  updateOnCreationFail: true
             patches:
               - type: PatchSet
                 patchSetName: providerConfigRef
