@@ -10,14 +10,14 @@ spec:
   parameters:
     engine: mysql
     engineVersion: "8_0"
-    region: europe-central2
+    region: us-west2
     storageGB: 10
     passwordSecretRef:
       namespace: default
       name: mysqlsecret
       key: password
     networkRef:
-      id: configuration-gcp-database-eu
+      id: configuration-gcp-database
   writeConnectionSecretToRef:
     name: configuration-gcp-database-mysql-conn
 ---
