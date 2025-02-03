@@ -192,3 +192,17 @@ spec:
               - name: serverCACertificateCert
                 type: FromConnectionSecretKey
                 fromConnectionSecretKey: serverCACertificateCert
+
+    - step: sequence-creation
+      functionRef:
+        name: crossplane-contrib-function-sequencer
+      input:
+        apiVersion: sequencer.fn.crossplane.io/v1beta1
+        kind: Input
+        rules:
+          - sequence:
+              - PrivateIPAddress
+              - PrivateConnection
+              - DBInstance
+              - DatabaseUser
+              - UpboundDatabase
