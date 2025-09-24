@@ -17,7 +17,7 @@ spec:
       name: psqlsecret
       key: password
     networkRef:
-      id: configuration-gcp-database
+      id: e2e-db-test-network
   writeConnectionSecretToRef:
     name: configuration-gcp-database-postgres-conn
 ---
