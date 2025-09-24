@@ -1,0 +1,21 @@
+apiVersion: gcp.platform.upbound.io/v1alpha1
+kind: XSQLInstance
+metadata:
+  name: test-mysql-instance
+spec:
+  parameters:
+    region: us-west2
+    engine: mysql
+    engineVersion: "8_0"
+    storageGB: 10
+    networkRef:
+      id: e2e-db-test-network
+    passwordSecretRef:
+      namespace: default
+      name: mysqlsecret
+      key: password
+    deletionPolicy: Delete
+    providerConfigName: default
+  writeConnectionSecretToRef:
+    name: mysql-conn
+    namespace: upbound-system
