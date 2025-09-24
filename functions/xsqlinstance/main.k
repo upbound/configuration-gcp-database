@@ -4,8 +4,9 @@ import models.io.upbound.gcp.servicenetworking.v1beta1 as servicenetworkingv1bet
 import models.io.upbound.gcp.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
-oxr = platformgcpv1alpha1.XSQLInstance{**option("params").oxr} # observed composite resource
+oxr = platformgcpv1alpha1.XSQLInstance{**option("params").oxr}
 params = oxr.spec.parameters
+providerConfigRefName = params.providerConfigName or "default"
 
 _metadata = lambda name: str -> any {
     {
@@ -13,17 +14,12 @@ _metadata = lambda name: str -> any {
     }
 }
 
-# Helper function to add common spec fields
-_add_common_spec_fields = lambda spec: any -> any {
-    spec | {
-        deletionPolicy = params.deletionPolicy
-        providerConfigRef = {
-            name = params.providerConfigName
-        }
-    }
+_defaults = {
+    deletionPolicy = params.deletionPolicy or "Delete"
+    if providerConfigRefName:
+        providerConfigRef.name = providerConfigRefName
 }
 
-# Helper function for connection secret names
 _connection_secret_name = lambda suffix: str -> str {
     _uid = oxr.metadata.uid if oxr.metadata?.uid else oxr.metadata.name
     "{}-gcp-{}-{}".format(_uid, params.engine, suffix)
@@ -33,7 +29,7 @@ _connection_secret_name = lambda suffix: str -> str {
 _items = [
     computev1beta1.GlobalAddress{
         metadata = _metadata("PrivateIPAddress")
-        spec = _add_common_spec_fields({
+        spec = _defaults | {
             forProvider = {
                 address = "10.205.0.0"
                 addressType = "INTERNAL"
@@ -45,11 +41,11 @@ _items = [
                     }
                 }
             }
-        })
+        }
     }
     servicenetworkingv1beta1.Connection{
         metadata = _metadata("PrivateConnection")
-        spec = _add_common_spec_fields({
+        spec = _defaults | {
             forProvider = {
                 reservedPeeringRangesSelector = {
                     matchControllerRef = True
@@ -62,11 +58,11 @@ _items = [
                     }
                 }
             }
-        })
+        }
     }
     sqlv1beta1.DatabaseInstance{
         metadata = _metadata("DBInstance")
-        spec = _add_common_spec_fields({
+        spec = _defaults | {
             forProvider = {
                 region = params.region
                 deletionProtection = False
@@ -86,7 +82,7 @@ _items = [
                 name = _connection_secret_name("instance")
                 namespace = "upbound-system"
             }
-        })
+        }
     }
     sqlv1beta1.User{
         metadata = _metadata("DatabaseUser") | {
@@ -95,7 +91,7 @@ _items = [
                 "krm.kcl.dev/composition-resource-name" = "DatabaseUser"
             }
         }
-        spec = _add_common_spec_fields({
+        spec = _defaults | {
             forProvider = {
                 instanceSelector = {
                     matchControllerRef = True
@@ -110,7 +106,7 @@ _items = [
                 name = _connection_secret_name("user")
                 namespace = "upbound-system"
             }
-        })
+        }
     }
     sqlv1beta1.Database{
         metadata = _metadata("UpboundDatabase") | {
@@ -119,13 +115,13 @@ _items = [
                 "krm.kcl.dev/composition-resource-name" = "UpboundDatabase"
             }
         }
-        spec = _add_common_spec_fields({
+        spec = _defaults | {
             forProvider = {
                 instanceSelector = {
                     matchControllerRef = True
                 }
             }
-        })
+        }
     }
 ]
 
