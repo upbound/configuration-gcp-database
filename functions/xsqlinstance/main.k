@@ -5,6 +5,7 @@ import models.io.upbound.gcp.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
 oxr = platformgcpv1alpha1.XSQLInstance{**option("params").oxr}
+_ocds = option("params").ocds
 params = oxr.spec.parameters
 providerConfigRefName = params.providerConfigName or "default"
 
@@ -25,6 +26,20 @@ _connection_secret_name = lambda suffix: str -> str {
     "{}-gcp-{}-{}".format(_uid, params.engine, suffix)
 }
 
+# Forward connection details from DatabaseInstance and User
+_connection_details = {
+    apiVersion = "meta.krm.kcl.dev/v1alpha1"
+    kind = "CompositeConnectionDetails"
+    if "DBInstance" in _ocds and "DatabaseUser" in _ocds:
+        data = {
+            host = _ocds["DBInstance"].ConnectionDetails.privateIP
+            serverCACertificateCert = _ocds["DBInstance"].ConnectionDetails.serverCACertificateCert
+            username = "upbounduser"
+            password = _ocds["DatabaseUser"].ConnectionDetails.password
+        }
+    else:
+        data = {}
+}
 
 _items = [
     computev1beta1.GlobalAddress{
@@ -123,6 +138,7 @@ _items = [
             }
         }
     }
+    _connection_details
 ]
 
 items = _items
