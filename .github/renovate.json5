@@ -11,24 +11,26 @@
   autoApprove: true,
   automerge: true,
   automergeType: 'pr',
-  baseBranches: [
+  baseBranchPatterns: [
     'main',
   ],
   labels: [
     'automated',
     'run-e2e-tests',
   ],
-  ignorePaths: [ // default renovate ignorePaths without '**/examples/**'
+  ignorePaths: [
     '**/node_modules/**',
     '**/bower_components/**',
     '**/vendor/**',
     '**/__tests__/**',
     '**/test/**',
     '**/tests/**',
-    '**/__fixtures__/**'
+    '**/__fixtures__/**',
   ],
   crossplane: {
-    fileMatch: ['(^|/)examples/.*\\.ya?ml$']
+    managerFilePatterns: [
+      '/(^|/)examples/.*\\.ya?ml$/',
+    ],
   },
   packageRules: [
     {
@@ -44,17 +46,21 @@
       groupName: 'crossplane dependencies',
     },
     {
-      matchManagers: ['crossplane'],
-      matchFileNames: ['examples/**'],
-      groupName: 'examples'
+      matchManagers: [
+        'crossplane',
+      ],
+      matchFileNames: [
+        'examples/**',
+      ],
+      groupName: 'examples',
     },
   ],
   customManagers: [
     {
       customType: 'regex',
       description: 'Bump providers/functions/configurations in upbound.yaml',
-      fileMatch: [
-        'upbound.yaml',
+      managerFilePatterns: [
+        '/upbound.yaml/',
       ],
       matchStrings: [
         '#\\s*renovate:\\s*datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)\\s*\\n\\s*version:\\s*"(?<currentValue>[^"]+)"',
@@ -63,7 +69,7 @@
       depNameTemplate: '{{{depName}}}',
     },
   ],
-  "git-submodules": {
-     "enabled": true
-  }
+  'git-submodules': {
+    enabled: true,
+  },
 }
