@@ -3,4 +3,4 @@ kind: Configuration
 metadata:
   name: configuration-gcp-database
 spec:
-  package: xpkg.upbound.io/upbound/configuration-gcp-database:v0.9.0
+  package: xpkg.upbound.io/upbound/configuration-gcp-database:v0.10.0
