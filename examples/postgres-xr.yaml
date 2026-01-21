@@ -1,7 +1,8 @@
 apiVersion: gcp.platform.upbound.io/v1alpha1
-kind: XSQLInstance
+kind: SQLInstance
 metadata:
   name: test-postgres-instance
+  namespace: default
 spec:
   parameters:
     region: us-west2
@@ -11,11 +12,7 @@ spec:
     networkRef:
       id: e2e-db-test-network
     passwordSecretRef:
-      namespace: default
       name: postgresqlsecret
       key: password
-    deletionPolicy: Delete
+    managementPolicies: ["*"]
     providerConfigName: default
-  writeConnectionSecretToRef:
-    name: postgres-conn
-    namespace: upbound-system

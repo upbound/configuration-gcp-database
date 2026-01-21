@@ -1,4 +1,4 @@
-apiVersion: meta.dev.upbound.io/v1alpha1
+apiVersion: meta.dev.upbound.io/v2alpha1
 kind: Project
 metadata:
   name: configuration-gcp-database
@@ -11,15 +11,15 @@ spec:
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.upbound.io/upbound/provider-gcp-sql
-    version: '>=v0.0.0'
+    version: '>=v2.0.0'
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.upbound.io/upbound/provider-gcp-servicenetworking
-    version: '>=v0.0.0'
+    version: '>=v2.0.0'
   - apiVersion: pkg.crossplane.io/v1
     kind: Configuration
     package: xpkg.upbound.io/upbound/configuration-gcp-network
-    version: v0.9.0
+    version: v2.0.0
   - apiVersion: pkg.crossplane.io/v1
     kind: Function
     package: xpkg.upbound.io/crossplane-contrib/function-auto-ready

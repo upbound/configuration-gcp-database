@@ -1,20 +1,13 @@
-apiVersion: apiextensions.crossplane.io/v1
+apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
-  name: xsqlinstances.gcp.platform.upbound.io
+  name: sqlinstances.gcp.platform.upbound.io
 spec:
+  scope: Namespaced
   group: gcp.platform.upbound.io
   names:
-    kind: XSQLInstance
-    plural: xsqlinstances
-  claimNames:
     kind: SQLInstance
     plural: sqlinstances
-  connectionSecretKeys:
-    - username
-    - password
-    - host
-    - serverCACertificateCert
   versions:
     - name: v1alpha1
       served: true
@@ -29,13 +22,19 @@ spec:
                 parameters:
                   type: object
                   properties:
-                    deletionPolicy:
-                      description: Delete the external resources when the Claim/XR is deleted. Defaults to Delete
-                      enum:
-                        - Delete
-                        - Orphan
-                      type: string
-                      default: Delete
+                    managementPolicies:
+                      description: "ManagementPolicies for resources. Defaults to [\"*\"] which includes all operations (Create, Observe, Update, Delete, LateInitialize). To orphan resources on deletion, use [\"Create\", \"Observe\", \"Update\", \"LateInitialize\"]."
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - "*"
+                          - Create
+                          - Observe
+                          - Update
+                          - Delete
+                          - LateInitialize
+                      default: ["*"]
                     providerConfigName:
                       description: Crossplane ProviderConfig to use for provisioning this resources
                       type: string
@@ -56,16 +55,16 @@ spec:
                       type: integer
                     passwordSecretRef:
                       type: object
-                      description: "A reference to the Secret object containing database password"
+                      description: "A reference to the Secret object containing database password. In v2, namespace is inferred from the resource namespace if not specified."
                       properties:
                         namespace:
                           type: string
+                          description: "Optional - namespace is inferred from resource namespace in v2"
                         name:
                           type: string
                         key:
                           type: string
                       required:
-                        - namespace
                         - name
                         - key
                     networkRef:

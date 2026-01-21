@@ -1,10 +1,11 @@
-
-import models.io.upbound.gcp.compute.v1beta1 as computev1beta1
-import models.io.upbound.gcp.servicenetworking.v1beta1 as servicenetworkingv1beta1
-import models.io.upbound.gcp.sql.v1beta1 as sqlv1beta1
+import base64
+import models.io.k8s.api.core.v1 as corev1
+import models.io.upbound.gcpm.compute.v1beta1 as computev1beta1
+import models.io.upbound.gcpm.servicenetworking.v1beta1 as servicenetworkingv1beta1
+import models.io.upbound.gcpm.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
-oxr = platformgcpv1alpha1.XSQLInstance{**option("params").oxr}
+oxr = platformgcpv1alpha1.SQLInstance{**option("params").oxr}
 _ocds = option("params").ocds
 params = oxr.spec.parameters
 providerConfigRefName = params.providerConfigName or "default"
@@ -16,9 +17,12 @@ _metadata = lambda name: str -> any {
 }
 
 _defaults = {
-    deletionPolicy = params.deletionPolicy or "Delete"
+    managementPolicies = params.managementPolicies or ["*"]
     if providerConfigRefName:
-        providerConfigRef.name = providerConfigRefName
+        providerConfigRef = {
+            kind = "ProviderConfig"
+            name = providerConfigRefName
+        }
 }
 
 _connection_secret_name = lambda suffix: str -> str {
@@ -26,16 +30,24 @@ _connection_secret_name = lambda suffix: str -> str {
     "{}-gcp-{}-{}".format(_uid, params.engine, suffix)
 }
 
-# Forward connection details from DatabaseInstance and User
-_connection_details = {
-    apiVersion = "meta.krm.kcl.dev/v1alpha1"
-    kind = "CompositeConnectionDetails"
+# Manual Secret composition for v2 (replaces CompositeConnectionDetails)
+_connection_secret = corev1.Secret{
+    metadata = _metadata("connection-secret") | {
+        name = "{}-connection".format(oxr.metadata.name)
+        namespace = oxr.metadata.namespace
+        labels = {
+            "crossplane.io/composite" = oxr.metadata.name
+        }
+    }
+    type = "connection.crossplane.io/v1alpha1"
     if "DBInstance" in _ocds and "DatabaseUser" in _ocds:
         data = {
-            host = _ocds["DBInstance"].ConnectionDetails.privateIP
-            serverCACertificateCert = _ocds["DBInstance"].ConnectionDetails.serverCACertificateCert
-            username = "upbounduser"
-            password = _ocds["DatabaseUser"].ConnectionDetails.password
+            # Base64-encode values from status (not from ConnectionDetails)
+            host = base64.encode(_ocds["DBInstance"].Resource?.status?.atProvider?.privateIpAddress or "")
+            serverCACertificateCert = base64.encode(_ocds["DBInstance"].Resource?.status?.atProvider?.serverCaCert?[0]?.cert or "")
+            username = base64.encode("upbounduser")
+            # Password comes pre-encoded from managed resource's connection secret
+            password = _ocds["DatabaseUser"].ConnectionDetails?.password or ""
         }
     else:
         data = {}
@@ -82,20 +94,16 @@ _items = [
                 region = params.region
                 deletionProtection = False
                 databaseVersion = "{}_{}".format(params.engine, params.engineVersion).upper()
-                settings = [{
+                settings = {
                     diskSize = params.storageGB
                     tier = "db-f1-micro"
-                    ipConfiguration = [{
+                    ipConfiguration = {
                         ipv4Enabled = False
                         privateNetworkRef = {
                             name = params.networkRef.id
                         }
-                    }]
-                }]
-            }
-            writeConnectionSecretToRef = {
-                name = _connection_secret_name("instance")
-                namespace = "upbound-system"
+                    }
+                }
             }
         }
     }
@@ -112,14 +120,9 @@ _items = [
                     matchControllerRef = True
                 }
                 passwordSecretRef = {
-                    namespace = params.passwordSecretRef.namespace
                     name = params.passwordSecretRef.name
                     key = params.passwordSecretRef.key
                 }
-            }
-            writeConnectionSecretToRef = {
-                name = _connection_secret_name("user")
-                namespace = "upbound-system"
             }
         }
     }
@@ -138,7 +141,7 @@ _items = [
             }
         }
     }
-    _connection_details
+    _connection_secret
 ]
 
 items = _items
