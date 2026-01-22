@@ -1,8 +1,8 @@
-
+import models.io.k8s.api.core.v1 as corev1
 import models.io.upbound.dev.meta.v1alpha1 as metav1alpha1
-import models.io.upbound.gcp.compute.v1beta1 as computev1beta1
-import models.io.upbound.gcp.servicenetworking.v1beta1 as servicenetworkingv1beta1
-import models.io.upbound.gcp.sql.v1beta1 as sqlv1beta1
+import models.io.upbound.gcpm.compute.v1beta1 as computev1beta1
+import models.io.upbound.gcpm.servicenetworking.v1beta1 as servicenetworkingv1beta1
+import models.io.upbound.gcpm.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
 _items = [
@@ -10,9 +10,10 @@ _items = [
         metadata.name: "test-mysql-instance"
         spec = {
             assertResources: [
-                platformgcpv1alpha1.XSQLInstance{
+                platformgcpv1alpha1.SQLInstance{
                     metadata = {
                         name = "test-mysql-instance"
+                        namespace = "default"
                     }
                     spec = {
                         parameters = {
@@ -24,11 +25,10 @@ _items = [
                                 id = "e2e-db-test-network"
                             }
                             passwordSecretRef = {
-                                namespace = "default"
                                 name = "mysqlsecret"
                                 key = "password"
                             }
-                            deletionPolicy = "Delete"
+                            managementPolicies = ["*"]
                             providerConfigName = "default"
                         }
                     }
@@ -40,7 +40,7 @@ _items = [
                         }
                     }
                     spec = {
-                        deletionPolicy = "Delete"
+                        managementPolicies = ["*"]
                         forProvider = {
                             address = "10.205.0.0"
                             addressType = "INTERNAL"
@@ -53,6 +53,7 @@ _items = [
                             }
                         }
                         providerConfigRef = {
+                            kind = "ProviderConfig"
                             name = "default"
                         }
                     }
@@ -64,7 +65,7 @@ _items = [
                         }
                     }
                     spec = {
-                        deletionPolicy = "Delete"
+                        managementPolicies = ["*"]
                         forProvider = {
                             reservedPeeringRangesSelector = {
                                 matchControllerRef = True
@@ -78,6 +79,7 @@ _items = [
                             }
                         }
                         providerConfigRef = {
+                            kind = "ProviderConfig"
                             name = "default"
                         }
                     }
@@ -91,34 +93,31 @@ _items = [
                             apiVersion = "gcp.platform.upbound.io/v1alpha1"
                             blockOwnerDeletion = True
                             controller = True
-                            kind = "XSQLInstance"
+                            kind = "SQLInstance"
                             name = "test-mysql-instance"
                             uid = ""
                         }]
                     }
                     spec = {
-                        deletionPolicy = "Delete"
+                        managementPolicies = ["*"]
                         forProvider = {
                             region = "us-west2"
                             deletionProtection = False
                             databaseVersion = "MYSQL_8_0"
-                            settings = [{
+                            settings = {
                                 diskSize = 10
                                 tier = "db-f1-micro"
-                                ipConfiguration = [{
+                                ipConfiguration = {
                                     ipv4Enabled = False
                                     privateNetworkRef = {
                                         name = "e2e-db-test-network"
                                     }
-                                }]
-                            }]
+                                }
+                            }
                         }
                         providerConfigRef = {
+                            kind = "ProviderConfig"
                             name = "default"
-                        }
-                        writeConnectionSecretToRef = {
-                            name = "test-mysql-instance-gcp-mysql-instance"
-                            namespace = "upbound-system"
                         }
                     }
                 }
@@ -132,23 +131,19 @@ _items = [
                         }
                     }
                     spec = {
-                        deletionPolicy = "Delete"
+                        managementPolicies = ["*"]
                         forProvider = {
                             instanceSelector = {
                                 matchControllerRef = True
                             }
                             passwordSecretRef = {
-                                namespace = "default"
                                 name = "mysqlsecret"
                                 key = "password"
                             }
                         }
                         providerConfigRef = {
+                            kind = "ProviderConfig"
                             name = "default"
-                        }
-                        writeConnectionSecretToRef = {
-                            name = "test-mysql-instance-gcp-mysql-user"
-                            namespace = "upbound-system"
                         }
                     }
                 }
@@ -162,21 +157,22 @@ _items = [
                         }
                     }
                     spec = {
-                        deletionPolicy = "Delete"
+                        managementPolicies = ["*"]
                         forProvider = {
                             instanceSelector = {
                                 matchControllerRef = True
                             }
                         }
                         providerConfigRef = {
+                            kind = "ProviderConfig"
                             name = "default"
                         }
                     }
                 }
             ]
-            compositionPath: "apis/composition.yaml"
+            compositionPath: "apis/sqlinstances/composition.yaml"
             xrPath: "examples/mysql-xr.yaml"
-            xrdPath: "apis/definition.yaml"
+            xrdPath: "apis/sqlinstances/definition.yaml"
             timeoutSeconds: 60
             validate: False
         }

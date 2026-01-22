@@ -1,10 +1,11 @@
 apiVersion: gcp.platform.upbound.io/v1alpha1
-kind: XNetwork
+kind: Network
 metadata:
   name: e2e-db-test-network
+  namespace: default
 spec:
   parameters:
     id: e2e-db-test-network
     region: us-west2
-    deletionPolicy: Delete
+    managementPolicies: ["*"]
     providerConfigName: default

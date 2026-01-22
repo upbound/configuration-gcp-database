@@ -3,29 +3,31 @@ import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 import models.io.k8s.api.core.v1 as k8sv1
 import models.io.upbound.gcp.v1beta1 as gcpv1beta1
 
-_mysql_network_xr = platformgcpv1alpha1.XNetwork{
+_mysql_network_xr = platformgcpv1alpha1.Network{
     metadata = {
         name = "e2e-mysql-network"
+        namespace = "default"
     }
     spec = {
         parameters = {
             id = "e2e-mysql-network"
             region = "us-west2"
-            deletionPolicy = "Delete"
+            managementPolicies = ["*"]
             providerConfigName = "default"
         }
     }
 }
 
-_postgres_network_xr = platformgcpv1alpha1.XNetwork{
+_postgres_network_xr = platformgcpv1alpha1.Network{
     metadata = {
         name = "e2e-postgres-network"
+        namespace = "default"
     }
     spec = {
         parameters = {
             id = "e2e-postgres-network"
             region = "us-west2"
-            deletionPolicy = "Delete"
+            managementPolicies = ["*"]
             providerConfigName = "default"
         }
     }
@@ -53,9 +55,10 @@ _postgres_secret = k8sv1.Secret{
     }
 }
 
-_mysql_xr = platformgcpv1alpha1.XSQLInstance{
+_mysql_xr = platformgcpv1alpha1.SQLInstance{
     metadata = {
         name = "test-mysql-xr"
+        namespace = "default"
     }
     spec = {
         parameters = {
@@ -67,23 +70,19 @@ _mysql_xr = platformgcpv1alpha1.XSQLInstance{
                 id = "e2e-mysql-network"
             }
             passwordSecretRef = {
-                namespace = "default"
                 name = "mysqlsecret"
                 key = "password"
             }
-            deletionPolicy = "Delete"
+            managementPolicies = ["*"]
             providerConfigName = "default"
-        }
-        writeConnectionSecretToRef = {
-            name = "mysql-conn"
-            namespace = "upbound-system"
         }
     }
 }
 
-_postgres_xr = platformgcpv1alpha1.XSQLInstance{
+_postgres_xr = platformgcpv1alpha1.SQLInstance{
     metadata = {
         name = "test-postgres-xr"
+        namespace = "default"
     }
     spec = {
         parameters = {
@@ -95,16 +94,11 @@ _postgres_xr = platformgcpv1alpha1.XSQLInstance{
                 id = "e2e-postgres-network"
             }
             passwordSecretRef = {
-                namespace = "default"
                 name = "postgresqlsecret"
                 key = "password"
             }
-            deletionPolicy = "Delete"
+            managementPolicies = ["*"]
             providerConfigName = "default"
-        }
-        writeConnectionSecretToRef = {
-            name = "postgres-conn"
-            namespace = "upbound-system"
         }
     }
 }
@@ -113,7 +107,10 @@ _items = [
     metav1alpha1.E2ETest{
         metadata.name: "e2e-sqlinstance-engines"
         spec = {
-            crossplane.autoUpgrade.channel: "Rapid"
+            crossplane = {
+                version = "2.0.2-up.5"
+                autoUpgrade.channel = "Rapid"
+            }
             defaultConditions: ["Ready"]
             manifests: [
                 _mysql_network_xr,
@@ -124,8 +121,13 @@ _items = [
                 _postgres_xr
             ]
             extraResources: [
-                gcpv1beta1.ProviderConfig{
-                    metadata.name: "default"
+                {
+                    apiVersion: "gcp.m.upbound.io/v1beta1"
+                    kind: "ProviderConfig"
+                    metadata: {
+                        name: "default"
+                        namespace: "default"
+                    }
                     spec: {
                         projectID: "crossplane-playground"
                         credentials: {

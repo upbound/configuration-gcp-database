@@ -1,19 +1,19 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: xsqlinstances.gcp.platform.upbound.io
+  name: sqlinstances.gcp.platform.upbound.io
   labels:
     provider: gcp
 spec:
   writeConnectionSecretsToNamespace: upbound-system
   compositeTypeRef:
     apiVersion: gcp.platform.upbound.io/v1alpha1
-    kind: XSQLInstance
+    kind: SQLInstance
   mode: Pipeline
   pipeline:
   - functionRef:
-      name: upbound-configuration-gcp-databasexsqlinstance
-    step: xsqlinstance
+      name: upbound-configuration-gcp-databasesqlinstance
+    step: sqlinstance
   - functionRef:
       name: crossplane-contrib-function-auto-ready
     step: crossplane-contrib-function-auto-ready
