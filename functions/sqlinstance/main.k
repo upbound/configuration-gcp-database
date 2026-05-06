@@ -115,6 +115,9 @@ _items = [
             }
         }
         spec = _defaults | {
+            writeConnectionSecretToRef = {
+                name = _connection_secret_name("user")
+            }
             forProvider = {
                 instanceSelector = {
                     matchControllerRef = True
