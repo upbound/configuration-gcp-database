@@ -178,6 +178,24 @@ _items = [
             xrdPath: "apis/sqlinstances/definition.yaml"
             timeoutSeconds: 60
             validate: False
+            observedResources = [
+                sqlv1beta1.DatabaseInstance{
+                    metadata = {
+                        annotations = {
+                            "crossplane.io/composition-resource-name" = "DBInstance"
+                        }
+                    }
+                    spec.forProvider.region = "us-west2"
+                    status = {
+                        conditions = [{
+                            type = "Ready"
+                            status = "True"
+                            reason = "Available"
+                            lastTransitionTime = "2024-01-01T00:00:00Z"
+                        }]
+                    }
+                }
+            ]
         }
     }
 ]
