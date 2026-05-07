@@ -111,6 +111,7 @@ _items = [
                         ipv4Enabled = False
                         privateNetworkRef = {
                             name = params.networkRef.id
+                            namespace = oxr.metadata.namespace
                         }
                     }
                 }
