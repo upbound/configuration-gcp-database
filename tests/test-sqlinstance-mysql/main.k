@@ -132,6 +132,9 @@ _items = [
                     }
                     spec = {
                         managementPolicies = ["*"]
+                        writeConnectionSecretToRef = {
+                            name = "test-mysql-instance-gcp-mysql-user"
+                        }
                         forProvider = {
                             instanceSelector = {
                                 matchControllerRef = True

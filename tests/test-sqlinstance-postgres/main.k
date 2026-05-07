@@ -34,6 +34,35 @@ _items = [
                         }
                     }
                 }
+                sqlv1beta1.User{
+                    metadata = {
+                        labels = {
+                            "crossplane.io/composite" = "test-postgres-instance"
+                        }
+                        annotations = {
+                            "crossplane.io/external-name" = "upbounduser"
+                        }
+                    }
+                    spec = {
+                        managementPolicies = ["*"]
+                        writeConnectionSecretToRef = {
+                            name = "test-postgres-instance-gcp-postgres-user"
+                        }
+                        forProvider = {
+                            instanceSelector = {
+                                matchControllerRef = True
+                            }
+                            passwordSecretRef = {
+                                name = "postgresqlsecret"
+                                key = "password"
+                            }
+                        }
+                        providerConfigRef = {
+                            kind = "ProviderConfig"
+                            name = "default"
+                        }
+                    }
+                }
             ]
             compositionPath: "apis/sqlinstances/composition.yaml"
             xrPath: "examples/postgres-xr.yaml"
