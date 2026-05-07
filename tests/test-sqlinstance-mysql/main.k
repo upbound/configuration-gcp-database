@@ -132,6 +132,9 @@ _items = [
                     }
                     spec = {
                         managementPolicies = ["*"]
+                        writeConnectionSecretToRef = {
+                            name = "test-mysql-instance-gcp-mysql-user"
+                        }
                         forProvider = {
                             instanceSelector = {
                                 matchControllerRef = True
@@ -175,6 +178,17 @@ _items = [
             xrdPath: "apis/sqlinstances/definition.yaml"
             timeoutSeconds: 60
             validate: False
+            observedResources = [
+                sqlv1beta1.DatabaseInstance{
+                    metadata = {
+                        annotations = {
+                            "crossplane.io/composition-resource-name" = "DBInstance"
+                        }
+                    }
+                    spec.forProvider.region = "us-west2"
+                    status.atProvider.privateIpAddress = "10.205.0.2"
+                }
+            ]
         }
     }
 ]

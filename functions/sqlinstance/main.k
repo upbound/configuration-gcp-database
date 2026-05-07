@@ -30,6 +30,16 @@ _connection_secret_name = lambda suffix: str -> str {
     "{}-gcp-{}-{}".format(_uid, params.engine, suffix)
 }
 
+# Check if DBInstance is actually running before creating dependent resources.
+# privateIpAddress is only populated once GCP reports the instance as RUNNABLE,
+# which is later than Crossplane's Ready=True condition.
+_dbInstanceResource = _ocds["DBInstance"] if _ocds and "DBInstance" in _ocds else None
+_dbInstanceReady = (_dbInstanceResource?.Resource?.status?.atProvider?.privateIpAddress or "") != ""
+
+# Safety: keep dependent resources if they already exist (prevent accidental deletion)
+_dbUserExists = "DatabaseUser" in _ocds if _ocds else False
+_dbExists = "UpboundDatabase" in _ocds if _ocds else False
+
 # Manual Secret composition for v2 (replaces CompositeConnectionDetails)
 _connection_secret = corev1.Secret{
     metadata = _metadata("connection-secret") | {
@@ -101,46 +111,53 @@ _items = [
                         ipv4Enabled = False
                         privateNetworkRef = {
                             name = params.networkRef.id
+                            namespace = oxr.metadata.namespace
                         }
                     }
                 }
             }
         }
     }
-    sqlv1beta1.User{
-        metadata = _metadata("DatabaseUser") | {
-            annotations = {
-                "crossplane.io/external-name" = "upbounduser"
-                "krm.kcl.dev/composition-resource-name" = "DatabaseUser"
-            }
-        }
-        spec = _defaults | {
-            forProvider = {
-                instanceSelector = {
-                    matchControllerRef = True
-                }
-                passwordSecretRef = {
-                    name = params.passwordSecretRef.name
-                    key = params.passwordSecretRef.key
+    if _dbInstanceReady or _dbUserExists:
+        sqlv1beta1.User{
+            metadata = _metadata("DatabaseUser") | {
+                annotations = {
+                    "crossplane.io/external-name" = "upbounduser"
+                    "krm.kcl.dev/composition-resource-name" = "DatabaseUser"
                 }
             }
-        }
-    }
-    sqlv1beta1.Database{
-        metadata = _metadata("UpboundDatabase") | {
-            annotations = {
-                "crossplane.io/external-name" = "upbound"
-                "krm.kcl.dev/composition-resource-name" = "UpboundDatabase"
-            }
-        }
-        spec = _defaults | {
-            forProvider = {
-                instanceSelector = {
-                    matchControllerRef = True
+            spec = _defaults | {
+                writeConnectionSecretToRef = {
+                    name = _connection_secret_name("user")
+                }
+                forProvider = {
+                    instanceSelector = {
+                        matchControllerRef = True
+                    }
+                    passwordSecretRef = {
+                        name = params.passwordSecretRef.name
+                        key = params.passwordSecretRef.key
+                    }
                 }
             }
         }
-    }
+
+    if _dbInstanceReady or _dbExists:
+        sqlv1beta1.Database{
+            metadata = _metadata("UpboundDatabase") | {
+                annotations = {
+                    "crossplane.io/external-name" = "upbound"
+                    "krm.kcl.dev/composition-resource-name" = "UpboundDatabase"
+                }
+            }
+            spec = _defaults | {
+                forProvider = {
+                    instanceSelector = {
+                        matchControllerRef = True
+                    }
+                }
+            }
+        }
     _connection_secret
 ]
 
