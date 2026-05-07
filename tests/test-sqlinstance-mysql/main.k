@@ -186,14 +186,7 @@ _items = [
                         }
                     }
                     spec.forProvider.region = "us-west2"
-                    status = {
-                        conditions = [{
-                            type = "Ready"
-                            status = "True"
-                            reason = "Available"
-                            lastTransitionTime = "2024-01-01T00:00:00Z"
-                        }]
-                    }
+                    status.atProvider.privateIpAddress = "10.205.0.2"
                 }
             ]
         }

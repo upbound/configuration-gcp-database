@@ -30,9 +30,11 @@ _connection_secret_name = lambda suffix: str -> str {
     "{}-gcp-{}-{}".format(_uid, params.engine, suffix)
 }
 
-# Check if DBInstance is ready before creating dependent resources
+# Check if DBInstance is actually running before creating dependent resources.
+# privateIpAddress is only populated once GCP reports the instance as RUNNABLE,
+# which is later than Crossplane's Ready=True condition.
 _dbInstanceResource = _ocds["DBInstance"] if _ocds and "DBInstance" in _ocds else None
-_dbInstanceReady = len([c for c in (_dbInstanceResource?.Resource?.status?.conditions or []) if c.type == "Ready" and c.status == "True"]) > 0
+_dbInstanceReady = (_dbInstanceResource?.Resource?.status?.atProvider?.privateIpAddress or "") != ""
 
 # Safety: keep dependent resources if they already exist (prevent accidental deletion)
 _dbUserExists = "DatabaseUser" in _ocds if _ocds else False
