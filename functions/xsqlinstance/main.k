@@ -4,7 +4,7 @@ import models.io.upbound.gcp.servicenetworking.v1beta1 as servicenetworkingv1bet
 import models.io.upbound.gcp.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
-oxr = platformgcpv1alpha1.XSQLInstance{**option("params").oxr}
+oxr = option("params").oxr
 _ocds = option("params").ocds
 params = oxr.spec.parameters
 providerConfigRefName = params.providerConfigName or "default"
