@@ -5,7 +5,14 @@ import models.io.upbound.gcpm.servicenetworking.v1beta1 as servicenetworkingv1be
 import models.io.upbound.gcpm.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
-oxr = platformgcpv1alpha1.SQLInstance{**option("params").oxr}
+# Reconstruct only the fields we use. Spreading the full observed XR fails schema
+# coercion because v2 populates spec.crossplane.resourceRefs[].namespace, which the
+# generated SQLInstance model's resourceRefs item schema does not declare.
+_oxr = option("params").oxr
+oxr = platformgcpv1alpha1.SQLInstance{
+    metadata = _oxr.metadata
+    spec.parameters = _oxr.spec.parameters
+}
 _ocds = option("params").ocds
 params = oxr.spec.parameters
 providerConfigRefName = params.providerConfigName or "default"
