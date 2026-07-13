@@ -5,6 +5,8 @@ import models.io.upbound.gcpm.servicenetworking.v1beta1 as servicenetworkingv1be
 import models.io.upbound.gcpm.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
+_xrUid = "6174cd64-19b4-5a66-b286-5356e6cd88f5"
+
 _items = [
     metav1alpha1.CompositionTest {
         metadata.name: "test-mysql-instance"
@@ -95,7 +97,7 @@ _items = [
                             controller = True
                             kind = "SQLInstance"
                             name = "test-mysql-instance"
-                            uid = ""
+                            uid = _xrUid
                         }]
                     }
                     spec = {
@@ -133,7 +135,7 @@ _items = [
                     spec = {
                         managementPolicies = ["*"]
                         writeConnectionSecretToRef = {
-                            name = "test-mysql-instance-gcp-mysql-user"
+                            name = "${_xrUid}-gcp-mysql-user"
                         }
                         forProvider = {
                             instanceSelector = {
@@ -181,9 +183,11 @@ _items = [
             observedResources = [
                 sqlv1beta1.DatabaseInstance{
                     metadata = {
+                        name = "test-mysql-instance-dbinstance"
                         annotations = {
                             "crossplane.io/composition-resource-name" = "DBInstance"
                         }
+                        namespace = "default"
                     }
                     spec.forProvider.region = "us-west2"
                     status.atProvider.privateIpAddress = "10.205.0.2"

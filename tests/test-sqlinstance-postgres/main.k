@@ -5,6 +5,7 @@ import models.io.upbound.gcpm.servicenetworking.v1beta1 as servicenetworkingv1be
 import models.io.upbound.gcpm.sql.v1beta1 as sqlv1beta1
 import models.io.upbound.platform.gcp.v1alpha1 as platformgcpv1alpha1
 
+_xrUid = "4b713ce0-93de-5b78-8d59-0a2233b524fc"
 
 _items = [
     metav1alpha1.CompositionTest{
@@ -46,7 +47,7 @@ _items = [
                     spec = {
                         managementPolicies = ["*"]
                         writeConnectionSecretToRef = {
-                            name = "test-postgres-instance-gcp-postgres-user"
+                            name = "${_xrUid}-gcp-postgres-user"
                         }
                         forProvider = {
                             instanceSelector = {
@@ -72,9 +73,11 @@ _items = [
             observedResources = [
                 sqlv1beta1.DatabaseInstance{
                     metadata = {
+                        name = "test-postgres-instance-dbinstance"
                         annotations = {
                             "crossplane.io/composition-resource-name" = "DBInstance"
                         }
+                        namespace = "default"
                     }
                     spec.forProvider.region = "us-west2"
                     status.atProvider.privateIpAddress = "10.205.0.2"
