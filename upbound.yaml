@@ -11,15 +11,15 @@ spec:
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.upbound.io/upbound/provider-gcp-sql
-    version: '>=v2.6.0, <v3.0.0'
+    version: '>=v3.0.5, <v4.0.0'
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.upbound.io/upbound/provider-gcp-servicenetworking
-    version: '>=v2.6.0, <v3.0.0'
+    version: '>=v3.0.5, <v4.0.0'
   - apiVersion: pkg.crossplane.io/v1
     kind: Configuration
     package: xpkg.upbound.io/upbound/configuration-gcp-network
-    version: v2.0.0
+    version: v3.0.0
   - apiVersion: pkg.crossplane.io/v1
     kind: Function
     package: xpkg.upbound.io/crossplane-contrib/function-auto-ready
