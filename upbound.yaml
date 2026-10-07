@@ -11,11 +11,11 @@ spec:
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.upbound.io/upbound/provider-gcp-sql
-    version: '>=v2.0.0'
+    version: '>=v2.6.0, <v3.0.0'
   - apiVersion: pkg.crossplane.io/v1
     kind: Provider
     package: xpkg.upbound.io/upbound/provider-gcp-servicenetworking
-    version: '>=v2.0.0'
+    version: '>=v2.6.0, <v3.0.0'
   - apiVersion: pkg.crossplane.io/v1
     kind: Configuration
     package: xpkg.upbound.io/upbound/configuration-gcp-network
