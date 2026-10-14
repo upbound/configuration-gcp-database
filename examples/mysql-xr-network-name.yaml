@@ -1,0 +1,20 @@
+apiVersion: gcp.platform.upbound.io/v1alpha1
+kind: SQLInstance
+metadata:
+  name: test-mysql-network-name
+  namespace: default
+spec:
+  parameters:
+    region: us-west2
+    engine: mysql
+    engineVersion: "8_0"
+    storageGB: 10
+    # The Network in examples/network-xr.yaml, by its name. The instance is wired from the
+    # Network's published status, and its network resources wait until the Network publishes it.
+    networkRef:
+      name: e2e-db-test-network
+    passwordSecretRef:
+      name: mysqlsecret
+      key: password
+    managementPolicies: ["*"]
+    providerConfigName: default

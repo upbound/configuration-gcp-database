@@ -29,7 +29,7 @@ from function import fn
     is_flag=True,
     help="Run without mTLS credentials. If you supply this flag --tls-certs-dir will be ignored.",
 )
-def cli(debug: bool, address: str, tls_certs_dir: str, insecure: bool) -> None:  # noqa:FBT001
+def cli(debug: bool, address: str, tls_certs_dir: str, insecure: bool) -> None:
     """A Crossplane composition function."""
     try:
         level = logging.Level.INFO
@@ -42,7 +42,7 @@ def cli(debug: bool, address: str, tls_certs_dir: str, insecure: bool) -> None: 
             creds=runtime.load_credentials(tls_certs_dir),
             insecure=insecure,
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - report any startup failure, not a traceback
         click.echo(f"Cannot run function: {e}")
 
 

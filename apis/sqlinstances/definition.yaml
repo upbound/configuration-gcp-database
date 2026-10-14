@@ -70,13 +70,24 @@ spec:
                     networkRef:
                       type: object
                       description: "A reference to the Network object that this postgres should be
-                      connected to."
+                      connected to. Set name, id, or both; name takes precedence."
                       properties:
                         id:
                           type: string
-                          description: ID of the Network object this ref points to.
-                      required:
-                        - id
+                          description: "ID of the Network object this ref points to: its
+                          spec.parameters.id. Used only when name is unset, to find the
+                          Network's network by its networks.gcp.platform.upbound.io/network-id
+                          label."
+                        name:
+                          type: string
+                          description: "Name of a Network in this namespace to connect to. When
+                          set, the instance is wired from that Network's published
+                          status.vpc, and its network resources are created once the
+                          Network publishes its network's id and selfLink. When unset, the network is found by the
+                          network-id label matching id, as before."
+                      x-kubernetes-validations:
+                        - rule: has(self.id) || has(self.name)
+                          message: networkRef must set id or name
                   required:
                     - region
                     - storageGB
@@ -84,3 +95,20 @@ spec:
                     - passwordSecretRef
               required:
                 - parameters
+            status:
+              type: object
+              description: Published by the composition, for consumers of this SQLInstance.
+              properties:
+                connectionSecretRef:
+                  type: object
+                  description: "The Secret, in this namespace, holding the connection details:
+                  host, serverCACertificateCert, username and password. It is created with
+                  the SQLInstance and stays empty until the database user exists."
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the connection Secret, <xr-name>-connection.
+                address:
+                  type: string
+                  description: "Private IP address of the instance in the Network. Set once
+                  Cloud SQL reports it, which is when the instance is reachable."

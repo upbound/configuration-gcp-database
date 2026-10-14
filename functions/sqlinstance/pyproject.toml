@@ -28,3 +28,10 @@ validate-bump = false
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint.isort]
+# So imports sort the same whether ruff runs here or from the repository root.
+known-first-party = ["function"]

@@ -56,6 +56,10 @@ test = compositiontest.CompositionTest(
                         "providerConfigName": "default",
                     },
                 },
+                "status": {
+                    "connectionSecretRef": {"name": f"{NAME}-connection"},
+                    "address": "10.205.0.2",
+                },
             },
             {
                 "apiVersion": "compute.gcp.m.upbound.io/v1beta1",

@@ -35,7 +35,7 @@ def password_secret(name: str) -> dict:
     }
 
 
-def sql_instance(name: str, engine: str, version: str, network_id: str, secret: str) -> dict:
+def sql_instance(name: str, engine: str, version: str, network: str, secret: str) -> dict:
     return {
         "apiVersion": "gcp.platform.upbound.io/v1alpha1",
         "kind": "SQLInstance",
@@ -46,7 +46,7 @@ def sql_instance(name: str, engine: str, version: str, network_id: str, secret: 
                 "engine": engine,
                 "engineVersion": version,
                 "storageGB": 10,
-                "networkRef": {"id": network_id},
+                "networkRef": {"name": network},
                 "passwordSecretRef": {"name": secret, "key": "password"},
                 "managementPolicies": ["*"],
                 "providerConfigName": "default",
@@ -55,7 +55,8 @@ def sql_instance(name: str, engine: str, version: str, network_id: str, secret: 
     }
 
 
-# One instance of each engine, each on its own network.
+# One instance of each engine, each on its own network and referencing it by name, so the
+# instances are wired from the Networks' published status.
 test = e2etest.E2ETest(
     metadata=k8s.ObjectMeta(name="e2e-sqlinstance-engines"),
     spec=e2etest.Spec(

@@ -36,6 +36,7 @@ The configuration can be tested using:
 - `up composition render --xrd=apis/sqlinstances/definition.yaml apis/sqlinstances/composition.yaml examples/mysql-xr.yaml` to render the MySQL composition
 - `up test run tests/*` to run composition tests
 - `up test run tests/* --e2e` to run end-to-end tests
+- `python -m pytest tests -q` in `functions/sqlinstance`, after `up project build`, to run the function's unit tests
 
 Tests are written in Python: each test directory's `test/__main__.py` generates
 its `CompositionTest` or `E2ETest` from the models `up project build` generates
@@ -76,10 +77,47 @@ The SQLInstance API supports the following parameters:
 - `engineVersion`: Database version (e.g., `8_0` for MySQL, `13` for PostgreSQL)
 - `storageGB`: Storage size in GB
 - `region`: GCP region for deployment
-- `networkRef.id`: Reference to the network from configuration-gcp-network
+- `networkRef`: The `Network` (from configuration-gcp-network) to connect to. Set `name`,
+  `id`, or both; `name` takes precedence. See [Referencing the Network](#referencing-the-network).
 - `passwordSecretRef`: Reference to Kubernetes secret containing database password (namespace inferred from resource namespace in v2)
 - `managementPolicies`: Resource management policies (default: `["*"]` which includes all operations; use `["Create", "Observe", "Update", "LateInitialize"]` to orphan resources)
 - `providerConfigName`: Crossplane ProviderConfig name
+
+## Referencing the Network
+
+An `SQLInstance` reaches Cloud SQL over private IP on a `Network` in the same namespace.
+
+- `networkRef.name` (recommended): the name of the `Network`. The function reads the `Network`
+  and wires the instance from its published `status.vpc`. Until the `Network` publishes
+  `status.vpc.id` and `status.vpc.selfLink`, which it does once its network exists in
+  GCP, the peering range, Service Networking connection and instance aren't created, and the
+  `SQLInstance` reports that it is waiting for the `Network`. This depends only on the `Network`'s
+  published status, so the `Network`'s implementation can change without breaking the
+  `SQLInstance`. Each resource gets the same network value its label selector would have
+  resolved to, so switching an existing `SQLInstance` from `id` to `name` changes nothing.
+- `networkRef.id`: the `Network`'s `spec.parameters.id`. The instance's resources select the
+  `Network`'s network resource by its `networks.gcp.platform.upbound.io/network-id` label. This is
+  how existing `SQLInstance`s work, and it keeps working; it depends on how the `Network` labels
+  its resources.
+
+```yaml
+spec:
+  parameters:
+    networkRef:
+      name: e2e-db-test-network
+```
+
+See [examples/mysql-xr-network-name.yaml](/examples/mysql-xr-network-name.yaml).
+
+## Status
+
+Other resources and consumers should read an `SQLInstance` through its status, not its composed
+resources:
+
+- `status.connectionSecretRef.name`: the Secret in the same namespace holding `host`,
+  `serverCACertificateCert`, `username` and `password`. It is `<name>-connection`, published from
+  the start, and the Secret stays empty until the database user exists.
+- `status.address`: the instance's private IP, once Cloud SQL reports it.
 
 ## Crossplane v2 Migration Notes
 
