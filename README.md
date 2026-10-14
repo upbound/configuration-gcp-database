@@ -16,7 +16,7 @@ In this specific configuration, the API contains:
 
 - **a [GCP SQL Database](/apis/sqlinstances/definition.yaml) custom resource type.**
 - **Composition:** Configured in [/apis/sqlinstances/composition.yaml](/apis/sqlinstances/composition.yaml)
-- **Embedded Function:** The Composition logic is encapsulated within [embedded function](/functions/sqlinstance/main.k)
+- **Embedded Function:** The Composition logic is encapsulated within a Python [embedded function](/functions/sqlinstance/function/fn.py)
 
 ## Features
 
@@ -37,6 +37,10 @@ The configuration can be tested using:
 - `up test run tests/*` to run composition tests
 - `up test run tests/* --e2e` to run end-to-end tests
 
+Tests are written in Python: each test directory's `test/__main__.py` generates
+its `CompositionTest` or `E2ETest` from the models `up project build` generates
+in `.up/python`.
+
 ## Deployment
 
 - Execute `up project run`
@@ -50,6 +54,19 @@ This configuration depends on:
 - [configuration-gcp-network](https://marketplace.upbound.io/configurations/upbound/configuration-gcp-network) for network resources
 - GCP SQL Provider for database management
 - GCP Service Networking Provider for private connections
+
+## Upgrading to provider-gcp v3
+
+This configuration requires provider-gcp `>=v3.0.5, <v4.0.0`, which removes the
+deprecated `v1beta1` API versions.
+
+- New control planes can install it directly.
+- Control planes running provider-gcp below v2.6 must upgrade those providers to
+  v2.6 first, then follow the provider's
+  [storage version migration](https://github.com/crossplane-contrib/provider-upjet-gcp/releases/tag/v3.0.0):
+  apply its migration `DeploymentRuntimeConfig` to each sub-provider this
+  configuration installs (provider-gcp-sql and provider-gcp-servicenetworking),
+  not to `provider-family-gcp`. Alternatively, rebuild the control plane.
 
 ## Parameters
 
@@ -84,10 +101,11 @@ This configuration was migrated to Crossplane v2 on January 21, 2026. Key change
 
 ### Provider Changes
 
-- **GCP Providers**: Updated to v2 with namespace-scoped managed resources
-  - provider-gcp-sql: >= v2.0.0
-  - provider-gcp-servicenetworking: >= v2.0.0
-- **Network Dependency**: Updated configuration-gcp-network to v2.0.0
+- **GCP Providers**: Updated to v2 with namespace-scoped managed resources, and since to v3
+  (see [Upgrading to provider-gcp v3](#upgrading-to-provider-gcp-v3))
+  - provider-gcp-sql: >=v3.0.5, <v4.0.0
+  - provider-gcp-servicenetworking: >=v3.0.5, <v4.0.0
+- **Network Dependency**: Updated configuration-gcp-network to v2.0.0, and since to v3.0.0
 - **Provider API Groups**: Now use namespaced APIs (e.g., `sql.gcp.m.upbound.io/v1beta1`)
 
 ### Example Updates
