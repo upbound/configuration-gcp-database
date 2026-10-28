@@ -1,3 +1,4 @@
 _output
 .venv
 .up
+__pycache__

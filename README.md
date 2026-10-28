@@ -16,7 +16,7 @@ In this specific configuration, the API contains:
 
 - **a [GCP SQL Database](/apis/sqlinstances/definition.yaml) custom resource type.**
 - **Composition:** Configured in [/apis/sqlinstances/composition.yaml](/apis/sqlinstances/composition.yaml)
-- **Embedded Function:** The Composition logic is encapsulated within [embedded function](/functions/sqlinstance/main.k)
+- **Embedded Function:** The Composition logic is encapsulated within a Python [embedded function](/functions/sqlinstance/function/fn.py)
 
 ## Features
 
@@ -36,6 +36,11 @@ The configuration can be tested using:
 - `up composition render --xrd=apis/sqlinstances/definition.yaml apis/sqlinstances/composition.yaml examples/mysql-xr.yaml` to render the MySQL composition
 - `up test run tests/*` to run composition tests
 - `up test run tests/* --e2e` to run end-to-end tests
+- `python -m pytest tests -q` in `functions/sqlinstance`, after `up project build`, to run the function's unit tests
+
+Tests are written in Python: each test directory's `test/__main__.py` generates
+its `CompositionTest` or `E2ETest` from the models `up project build` generates
+in `.up/python`.
 
 ## Deployment
 
@@ -51,6 +56,34 @@ This configuration depends on:
 - GCP SQL Provider for database management
 - GCP Service Networking Provider for private connections
 
+## Upgrading to provider-gcp v3
+
+This configuration requires provider-gcp `>=v3.0.5, <v4.0.0`, which removes the
+deprecated `v1beta1` API versions. New control planes can install it directly.
+
+On a control plane that already runs provider-gcp v1.x or v2.x, at any minor
+version, the provider's [storage version migration](https://github.com/crossplane-contrib/provider-upjet-gcp/releases/tag/v3.0.0) is mandatory and
+must finish before this configuration is upgraded. It applies to the
+sub-providers this configuration installs: provider-gcp-sql and provider-gcp-servicenetworking, and provider-gcp-compute through configuration-gcp-network.
+
+1. Upgrade those sub-providers to v2.6, by way of v2.0 if they're on v1.x.
+   v2.6 is a required stop: it stores objects as `v1beta2` while `v1beta1` is
+   still served.
+2. Upgrade them to v3.0.5 or later with the provider's migration
+   `DeploymentRuntimeConfig` referenced from each `Provider`'s
+   `runtimeConfigRef`. Use one per sub-provider, since its images must match
+   that sub-provider's v3 image, and apply the ClusterRole and
+   ClusterRoleBinding that come with it, with the binding's namespace set to
+   Crossplane's, so the migration can clear `status.storedVersions`. Don't
+   apply it to `provider-family-gcp`. Once the init container logs show the
+   migration finished, remove the `runtimeConfigRef`.
+3. Then upgrade this configuration.
+
+Don't upgrade this configuration first. With automatic dependency version
+upgrades enabled, its dependency constraint moves the sub-providers straight to
+v3 and skips the migration; without them, it can't resolve its dependencies.
+Rebuilding the control plane is the alternative to migrating.
+
 ## Parameters
 
 The SQLInstance API supports the following parameters:
@@ -59,10 +92,47 @@ The SQLInstance API supports the following parameters:
 - `engineVersion`: Database version (e.g., `8_0` for MySQL, `13` for PostgreSQL)
 - `storageGB`: Storage size in GB
 - `region`: GCP region for deployment
-- `networkRef.id`: Reference to the network from configuration-gcp-network
+- `networkRef`: The `Network` (from configuration-gcp-network) to connect to. Set `name`,
+  `id`, or both; `name` takes precedence. See [Referencing the Network](#referencing-the-network).
 - `passwordSecretRef`: Reference to Kubernetes secret containing database password (namespace inferred from resource namespace in v2)
 - `managementPolicies`: Resource management policies (default: `["*"]` which includes all operations; use `["Create", "Observe", "Update", "LateInitialize"]` to orphan resources)
 - `providerConfigName`: Crossplane ProviderConfig name
+
+## Referencing the Network
+
+An `SQLInstance` reaches Cloud SQL over private IP on a `Network` in the same namespace.
+
+- `networkRef.name` (recommended): the name of the `Network`. The function reads the `Network`
+  and wires the instance from its published `status.vpc`. Until the `Network` publishes
+  `status.vpc.id` and `status.vpc.selfLink`, which it does once its network exists in
+  GCP, the peering range, Service Networking connection and instance aren't created, and the
+  `SQLInstance` reports that it is waiting for the `Network`. This depends only on the `Network`'s
+  published status, so the `Network`'s implementation can change without breaking the
+  `SQLInstance`. Each resource gets the same network value its label selector would have
+  resolved to, so switching an existing `SQLInstance` from `id` to `name` changes nothing.
+- `networkRef.id`: the `Network`'s `spec.parameters.id`. The instance's resources select the
+  `Network`'s network resource by its `networks.gcp.platform.upbound.io/network-id` label. This is
+  how existing `SQLInstance`s work, and it keeps working; it depends on how the `Network` labels
+  its resources.
+
+```yaml
+spec:
+  parameters:
+    networkRef:
+      name: e2e-db-test-network
+```
+
+See [examples/mysql-xr-network-name.yaml](/examples/mysql-xr-network-name.yaml).
+
+## Status
+
+Other resources and consumers should read an `SQLInstance` through its status, not its composed
+resources:
+
+- `status.connectionSecretRef.name`: the Secret in the same namespace holding `host`,
+  `serverCACertificateCert`, `username` and `password`. It is `<name>-connection`, published from
+  the start, and the Secret stays empty until the database user exists.
+- `status.address`: the instance's private IP, once Cloud SQL reports it.
 
 ## Crossplane v2 Migration Notes
 
@@ -84,10 +154,11 @@ This configuration was migrated to Crossplane v2 on January 21, 2026. Key change
 
 ### Provider Changes
 
-- **GCP Providers**: Updated to v2 with namespace-scoped managed resources
-  - provider-gcp-sql: >= v2.0.0
-  - provider-gcp-servicenetworking: >= v2.0.0
-- **Network Dependency**: Updated configuration-gcp-network to v2.0.0
+- **GCP Providers**: Updated to v2 with namespace-scoped managed resources, and since to v3
+  (see [Upgrading to provider-gcp v3](#upgrading-to-provider-gcp-v3))
+  - provider-gcp-sql: >=v3.0.5, <v4.0.0
+  - provider-gcp-servicenetworking: >=v3.0.5, <v4.0.0
+- **Network Dependency**: Updated configuration-gcp-network to v2.0.0, and since to v3.0.0
 - **Provider API Groups**: Now use namespaced APIs (e.g., `sql.gcp.m.upbound.io/v1beta1`)
 
 ### Example Updates
