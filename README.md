@@ -59,15 +59,30 @@ This configuration depends on:
 ## Upgrading to provider-gcp v3
 
 This configuration requires provider-gcp `>=v3.0.5, <v4.0.0`, which removes the
-deprecated `v1beta1` API versions.
+deprecated `v1beta1` API versions. New control planes can install it directly.
 
-- New control planes can install it directly.
-- Control planes running provider-gcp below v2.6 must upgrade those providers to
-  v2.6 first, then follow the provider's
-  [storage version migration](https://github.com/crossplane-contrib/provider-upjet-gcp/releases/tag/v3.0.0):
-  apply its migration `DeploymentRuntimeConfig` to each sub-provider this
-  configuration installs (provider-gcp-sql and provider-gcp-servicenetworking),
-  not to `provider-family-gcp`. Alternatively, rebuild the control plane.
+On a control plane that already runs provider-gcp v1.x or v2.x, at any minor
+version, the provider's [storage version migration](https://github.com/crossplane-contrib/provider-upjet-gcp/releases/tag/v3.0.0) is mandatory and
+must finish before this configuration is upgraded. It applies to the
+sub-providers this configuration installs: provider-gcp-sql and provider-gcp-servicenetworking, and provider-gcp-compute through configuration-gcp-network.
+
+1. Upgrade those sub-providers to v2.6, by way of v2.0 if they're on v1.x.
+   v2.6 is a required stop: it stores objects as `v1beta2` while `v1beta1` is
+   still served.
+2. Upgrade them to v3.0.5 or later with the provider's migration
+   `DeploymentRuntimeConfig` referenced from each `Provider`'s
+   `runtimeConfigRef`. Use one per sub-provider, since its images must match
+   that sub-provider's v3 image, and apply the ClusterRole and
+   ClusterRoleBinding that come with it, with the binding's namespace set to
+   Crossplane's, so the migration can clear `status.storedVersions`. Don't
+   apply it to `provider-family-gcp`. Once the init container logs show the
+   migration finished, remove the `runtimeConfigRef`.
+3. Then upgrade this configuration.
+
+Don't upgrade this configuration first. With automatic dependency version
+upgrades enabled, its dependency constraint moves the sub-providers straight to
+v3 and skips the migration; without them, it can't resolve its dependencies.
+Rebuilding the control plane is the alternative to migrating.
 
 ## Parameters
 
